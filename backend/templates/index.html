@@ -22,8 +22,8 @@
           <input type="file" name="datei" id="datei" required>
         </div>
         
-        <!-- Hier wird der Dateiname angezeigt, wenn eine Datei ausgewählt wurde -->
-        <div id="file-info" class="file-info" style="margin-top: 0.5rem; font-style: italic; color: #555;"></div>
+        <!-- Anzeige des Dateinamens -->
+        <div id="file-info" class="file-info" style="margin-top: 0.5rem; font-style: italic; color: #ccc;"></div>
         
         <div class="form-group">
           <label for="email">E-Mail (für den Download-Link)</label>
@@ -34,8 +34,12 @@
           <input type="text" name="password" id="password" placeholder="Optional">
         </div>
         <button type="submit">Datei hochladen</button>
-        <!-- Lade-Indikator (zunächst versteckt) -->
-        <div class="loading" style="display: none; margin-top: 1rem;">Bitte warten, Datei wird hochgeladen...</div>
+        
+        <!-- Loader-Indicator (Spinner) -->
+        <div class="loader-container" style="display: none;">
+          <div class="loader"></div>
+          <p>Lade Datei...</p>
+        </div>
       </form>
     </div>
 
@@ -45,7 +49,7 @@
       const fileInfo = document.getElementById('file-info');
       const dropText = document.getElementById('drop-text');
 
-      // Standardaktionen verhindern (Drag & Drop Verhalten)
+      // Standardaktionen für Drag & Drop verhindern
       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropArea.addEventListener(eventName, preventDefaults, false);
       });
@@ -54,7 +58,7 @@
         e.stopPropagation();
       }
 
-      // Wenn die Maus über die Fläche fährt: optische Hervorhebung
+      // Hervorhebung beim Drag & Drop
       ['dragenter', 'dragover'].forEach(eventName => {
         dropArea.addEventListener(eventName, () => {
           dropArea.classList.add('highlight');
@@ -66,12 +70,12 @@
         }, false);
       });
 
-      // Wenn man in den Bereich klickt, öffnet sich auch das Dateiauswahlfenster
+      // Beim Klick in den Bereich Dateiauswahl öffnen
       dropArea.addEventListener('click', () => {
         fileInput.click();
       }, false);
 
-      // Dateien beim Drop verarbeiten
+      // Dateien per Drag & Drop verarbeiten
       dropArea.addEventListener('drop', handleDrop, false);
       function handleDrop(e) {
         const dt = e.dataTransfer;
@@ -82,24 +86,23 @@
         }
       }
 
-      // Dateiauswahl per Klick - wenn eine Datei ausgewählt wurde, wird der Name angezeigt
+      // Bei Dateiauswahl per Klick
       fileInput.addEventListener('change', function() {
         if (fileInput.files.length > 0) {
           displayFileName(fileInput.files[0].name);
         }
       });
 
-      // Funktion zum Anzeigen des Dateinamens
+      // Funktion zur Anzeige des Dateinamens
       function displayFileName(name) {
         fileInfo.textContent = "Ausgewählte Datei: " + name;
         dropText.textContent = "Datei ausgewählt – klicke hier, um eine andere auszuwählen";
       }
 
-      // Lade-Indikator anzeigen, wenn das Formular abgesendet wird
+      // Loader-Indicator anzeigen, wenn Formular abgeschickt wird
       const form = document.querySelector('form');
       form.addEventListener('submit', function() {
-        const loadingIndicator = document.querySelector('.loading');
-        loadingIndicator.style.display = 'block';
+        document.querySelector('.loader-container').style.display = 'flex';
       });
     </script>
 </body>
