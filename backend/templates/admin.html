@@ -9,31 +9,83 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* Zusätzliche Admin-spezifische Styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+    table th, table td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+    table th {
+      background-color: #f2f2f2;
+    }
+    .action-btn {
+      display: inline-block;
+      padding: 6px 12px;
+      background-color: #000;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+    .action-btn:hover {
+      background-color: #333;
+    }
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .cleanup-btn {
+      background-color: #d9534f;
+    }
+    .cleanup-btn:hover {
+      background-color: #c9302c;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h1>Admin-Panel</h1>
+    <div class="admin-header">
+      <h1>Admin-Panel</h1>
+      <a href="{{ url_for('cleanup') }}" class="action-btn cleanup-btn" onclick="return confirm('Möchtest du alle abgelaufenen Dateien löschen?');">
+        Aufräumen
+      </a>
+    </div>
     {% if uploads %}
-    <table style="width:100%; border-collapse: collapse;">
+    <table>
       <thead>
         <tr>
-          <th style="border: 1px solid #ccc; padding: 8px;">Dateiname</th>
-          <th style="border: 1px solid #ccc; padding: 8px;">Original-Dateiname</th>
-          <th style="border: 1px solid #ccc; padding: 8px;">Upload-Zeit</th>
-          <th style="border: 1px solid #ccc; padding: 8px;">Ablauf-Zeit</th>
-          <th style="border: 1px solid #ccc; padding: 8px;">E-Mail</th>
-          <th style="border: 1px solid #ccc; padding: 8px;">Downloads</th>
+          <th>Dateiname</th>
+          <th>Original-Dateiname</th>
+          <th>Upload-Zeit</th>
+          <th>Ablauf-Zeit</th>
+          <th>E-Mail</th>
+          <th>Downloads</th>
+          <th>Download-Link</th>
         </tr>
       </thead>
       <tbody>
         {% for upload in uploads %}
         <tr>
-          <td style="border: 1px solid #ccc; padding: 8px;">{{ upload.filename }}</td>
-          <td style="border: 1px solid #ccc; padding: 8px;">{{ upload.original_filename }}</td>
-          <td style="border: 1px solid #ccc; padding: 8px;">{{ upload.upload_time }}</td>
-          <td style="border: 1px solid #ccc; padding: 8px;">{{ upload.expiration_time }}</td>
-          <td style="border: 1px solid #ccc; padding: 8px;">{{ upload.email }}</td>
-          <td style="border: 1px solid #ccc; padding: 8px;">{{ upload.download_count }}</td>
+          <td>{{ upload.filename }}</td>
+          <td>{{ upload.original_filename }}</td>
+          <td>{{ upload.upload_time }}</td>
+          <td>{{ upload.expiration_time }}</td>
+          <td>{{ upload.email }}</td>
+          <td>{{ upload.download_count }}</td>
+          <td>
+            <a href="{{ url_for('download_file', filename=upload.filename, _external=True) }}" target="_blank" class="action-btn">
+              Öffnen
+            </a>
+          </td>
         </tr>
         {% endfor %}
       </tbody>
