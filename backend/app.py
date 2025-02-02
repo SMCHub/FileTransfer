@@ -26,6 +26,9 @@ if not os.path.exists(UPLOAD_FOLDER):
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # Maximale Dateigröße: 100 MB
 
+# Globales Wörterbuch, um Informationen zu gespeicherten Dateien zu speichern
+uploads_info = {}
+
 # Startseite: Hier wird das Upload-Formular angezeigt
 @app.route('/')
 def index():
@@ -48,33 +51,62 @@ def upload_file():
     # Speichere die Datei in den Upload-Ordner
     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     
+    # Holen der anderen Formularfelder
+    email = request.form.get('email')
+    password = request.form.get('password')  # kann leer sein
+
+    # Speichern der Datei-Informationen im Wörterbuch
+    uploads_info[filename] = {
+        'password': password,
+        'original_filename': file.filename
+    }
+
     # Weiterverarbeitung (Zum Beispiel Download-Link generieren)
     download_link = url_for('download_file', filename=filename, _external=True)
     
-    # Hole Email aus dem Formular (damit der Download-Link per Email versendet werden kann)
-    email_address = request.form.get('email', None)
-    
-    # Optional: Passwort, falls eingegeben, holen (hier noch nicht weiter verarbeitet)
-    password = request.form.get('password', None)
-    
     # Sende Email, falls eine Email-Adresse angegeben wurde
-    if email_address:
+    if email:
         try:
             msg = Message("Ihre Datei ist bereit zum Download",
-                          recipients=[email_address])
+                          recipients=[email])
             msg.body = f"Hallo,\n\nEine Datei wurde für Sie hochgeladen. Sie können die Datei unter folgendem Link herunterladen:\n{download_link}\n\nMit freundlichen Grüßen,\nIhr FileTransfer Team"
             mail.send(msg)
             flash("Email wurde gesendet!")
         except Exception as e:
             flash(f"Fehler beim Senden der Email: {e}")
     
-    return render_template('upload_success.html', download_link=download_link, password=password, email_sent=(email_address is not None))
+    return render_template('upload_success.html', download_link=download_link, original_filename=file.filename, password=password, email_sent=(email is not None))
 
 # Route zum Herunterladen der Datei
-@app.route('/download/<filename>')
+@app.route('/download/<filename>', methods=['GET', 'POST'])
 def download_file(filename):
-    # Hier könnte optional der Passwortschutz ergänzt werden.
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+    # Informationen zur Datei abfragen
+    info = uploads_info.get(filename)
+    if not info:
+        return "Datei nicht gefunden!", 404
+
+    required_password = info.get('password')
+    if required_password:  # Falls die Datei passwortgeschützt ist
+        if request.method == 'POST':
+            provided_password = request.form.get('password')
+            if provided_password == required_password:
+                # Passwort korrekt → Datei zum Download anbieten
+                return send_from_directory(
+                    app.config['UPLOAD_FOLDER'], filename,
+                    as_attachment=True, download_name=info.get('original_filename', filename)
+                )
+            else:
+                error = "Falsches Passwort."
+                return render_template('download.html', filename=filename, error=error, password_required=True)
+        else:
+            # Passwortabfrage anzeigen
+            return render_template('download.html', filename=filename, password_required=True)
+    else:
+        # Kein Passwort erforderlich
+        return send_from_directory(
+            app.config['UPLOAD_FOLDER'], filename,
+            as_attachment=True, download_name=info.get('original_filename', filename)
+        )
 
 if __name__ == '__main__':
     app.run(debug=True)

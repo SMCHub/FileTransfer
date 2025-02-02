@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Datei herunterladen</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <!-- Google Fonts laden -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <h1>Datei herunterladen</h1>
+    <p>Datei: <strong>{{ filename }}</strong></p>
+    {% if error %}
+      <p style="color:red;">{{ error }}</p>
+    {% endif %}
+    {% if password_required %}
+      <form method="POST">
+        <div class="form-group">
+          <label for="password">Bitte Passwort eingeben:</label>
+          <input type="text" name="password" id="password" required>
+        </div>
+        <button type="submit">Absenden</button>
+      </form>
+    {% else %}
+      <p>Kein Passwort erforderlich. <a href="{{ url_for('download_file', filename=filename) }}">Hier klicken, um herunterzuladen</a>.</p>
+    {% endif %}
+  </div>
+</body>
+</html> 

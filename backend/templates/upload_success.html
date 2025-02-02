@@ -13,13 +13,14 @@
 <body>
     <div class="container">
         <h1>Upload Erfolgreich</h1>
-        <p>Deine Datei wurde erfolgreich hochgeladen. Hier ist der Download-Link:</p>
+        <p>Deine Datei <strong>{{ original_filename }}</strong> wurde erfolgreich hochgeladen.</p>
+        <p>Hier ist der Download-Link:</p>
         <p><a href="{{ download_link }}" class="download-link">{{ download_link }}</a></p>
         {% if email_sent %}
         <p>Der Link wurde zusätzlich per E-Mail an dich gesendet.</p>
         {% endif %}
         {% if password %}
-        <p>Dein gewähltes Passwort: <strong>{{ password }}</strong></p>
+        <p>Diese Datei ist passwortgeschützt. Zum Herunterladen musst du das Passwort eingeben, das du angegeben hast.</p>
         {% endif %}
         <a href="{{ url_for('index') }}" class="back-link">Zurück zur Startseite</a>
     </div>
