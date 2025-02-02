@@ -1,9 +1,10 @@
-from flask import Flask, request, render_template, redirect, url_for, send_from_directory, flash
+from flask import Flask, request, render_template, redirect, url_for, send_from_directory, flash, jsonify
 import os
 import uuid
 from flask_mail import Mail, Message  # Für den Email-Versand
 from werkzeug.utils import secure_filename
 import json
+from datetime import datetime, timedelta
 
 app = Flask(__name__, static_folder='../static', static_url_path='/static')
 app.secret_key = 'dein_geheimer_schluessel'  # Ändere diesen Schlüssel in etwas Einzigartiges!
@@ -42,7 +43,12 @@ def load_metadata():
 def save_metadata(metadata):
     metadata_file = os.path.join(app.config['UPLOAD_FOLDER'], 'metadata.json')
     with open(metadata_file, 'w') as f:
-        json.dump(metadata, f)
+        json.dump(metadata, f, indent=4, default=str)
+
+def send_email(recipient, subject, message):
+    # Dummy-Funktion zum Versenden von E-Mails.
+    # In einer Produktionsumgebung sollte hier z. B. Flask-Mail integriert werden.
+    print(f"E-Mail gesendet an {recipient} mit Betreff '{subject}':\n{message}")
 
 # Startseite: Hier wird das Upload-Formular angezeigt
 @app.route('/')
@@ -70,29 +76,45 @@ def upload_file():
     email = request.form.get('email')
     password = request.form.get('password')  # kann leer sein
 
+    # Speichere Upload-Zeit und berechne Ablaufzeit (7 Tage)
+    now = datetime.utcnow()
+    expiration = now + timedelta(days=7)
+
     # Lade bestehende Metadaten, update diese mit den neuen Informationen und speichere sie
     metadata = load_metadata()
     metadata[filename] = {
         'password': password,
-        'original_filename': file.filename
+        'original_filename': file.filename,
+        'upload_time': now.isoformat(),
+        'expiration_time': expiration.isoformat(),
+        'email': email,
+        'download_count': 0
     }
     save_metadata(metadata)
 
-    # Weiterverarbeitung (Zum Beispiel Download-Link generieren)
+    # Generiere Redirect-URL zur Upload-Erfolgsseite
+    redirect_url = url_for('upload_success', filename=filename)
+
+    # Wenn der Request per AJAX (XMLHttpRequest) erfolgt, liefern wir eine JSON-Antwort
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'redirect_url': redirect_url})
+    else:
+        return redirect(redirect_url)
+
+@app.route('/upload_success')
+def upload_success():
+    filename = request.args.get('filename')
+    if not filename:
+        return redirect(url_for('index'))
+    data = load_metadata().get(filename)
+    if not data:
+        return "Upload-Daten nicht gefunden", 404
     download_link = url_for('download_file', filename=filename, _external=True)
-    
-    # Sende Email, falls eine Email-Adresse angegeben wurde
-    if email:
-        try:
-            msg = Message("Ihre Datei ist bereit zum Download",
-                          recipients=[email])
-            msg.body = f"Hallo,\n\nEine Datei wurde für Sie hochgeladen. Sie können die Datei unter folgendem Link herunterladen:\n{download_link}\n\nMit freundlichen Grüßen,\nIhr FileTransfer Team"
-            mail.send(msg)
-            flash("Email wurde gesendet!")
-        except Exception as e:
-            flash(f"Fehler beim Senden der Email: {e}")
-    
-    return render_template('upload_success.html', download_link=download_link, original_filename=file.filename, password=password, email_sent=(email is not None))
+    return render_template('upload_success.html',
+                           download_link=download_link,
+                           original_filename=data.get('original_filename'),
+                           password=data.get('password'),
+                           email_sent=True)
 
 # Route zum Herunterladen der Datei
 @app.route('/download/<filename>', methods=['GET', 'POST'])
@@ -103,12 +125,21 @@ def download_file(filename):
     if not info:
         return "Datei nicht gefunden!", 404
 
+    # Prüfe, ob die Datei abgelaufen ist
+    expiration_time = datetime.fromisoformat(info.get('expiration_time'))
+    if datetime.utcnow() > expiration_time:
+        return "Der Download-Link ist abgelaufen!", 410
+
     required_password = info.get('password')
     if required_password:  # Falls die Datei passwortgeschützt ist
         if request.method == 'POST':
             provided_password = request.form.get('password')
             if provided_password == required_password:
                 # Passwort korrekt → Datei zum Download anbieten
+                # Nach erfolgreichem Download wird der Download-Zähler erhöht
+                info['download_count'] = info.get('download_count', 0) + 1
+                metadata[filename] = info
+                save_metadata(metadata)
                 return send_from_directory(
                     app.config['UPLOAD_FOLDER'], filename,
                     as_attachment=True, download_name=info.get('original_filename', filename)
@@ -121,10 +152,51 @@ def download_file(filename):
             return render_template('download.html', filename=filename, password_required=True)
     else:
         # Kein Passwort erforderlich
+        # Nach erfolgreichem Download wird der Download-Zähler erhöht
+        info['download_count'] = info.get('download_count', 0) + 1
+        metadata[filename] = info
+        save_metadata(metadata)
         return send_from_directory(
             app.config['UPLOAD_FOLDER'], filename,
             as_attachment=True, download_name=info.get('original_filename', filename)
         )
+
+@app.route('/admin')
+def admin_panel():
+    # Einfaches Admin-Panel (ohne Authentifizierung)
+    metadata = load_metadata()
+    uploads = []
+    for fname, data in metadata.items():
+        uploads.append({
+            'filename': fname,
+            'original_filename': data.get('original_filename'),
+            'upload_time': data.get('upload_time'),
+            'expiration_time': data.get('expiration_time'),
+            'email': data.get('email'),
+            'download_count': data.get('download_count')
+        })
+    return render_template('admin.html', uploads=uploads)
+
+@app.route('/cleanup')
+def cleanup():
+    # Diese Route durchsucht die Uploads, löscht abgelaufene Dateien und sendet Benachrichtigungen per E-Mail.
+    metadata = load_metadata()
+    now = datetime.utcnow()
+    removed = []
+    for filename, data in list(metadata.items()):
+        expiration_time = datetime.fromisoformat(data.get('expiration_time'))
+        if now > expiration_time:
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            recipient = data.get('email')
+            subject = "Deine Datei ist abgelaufen"
+            message = f"Die Datei '{data.get('original_filename')}' ist abgelaufen und wurde entfernt."
+            send_email(recipient, subject, message)
+            removed.append(filename)
+            del metadata[filename]
+    save_metadata(metadata)
+    return f"Aufgeräumt: {', '.join(removed)}" if removed else "Keine Dateien zu entfernen."
 
 if __name__ == '__main__':
     app.run(debug=True)

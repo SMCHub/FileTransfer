@@ -16,10 +16,10 @@
     <div class="container">
       <h1>Filetransfer</h1>
       <p>Lade deine Datei per Drag & Drop oder per Klick hoch.</p>
-      <form action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data">
+      <form id="upload-form">
         <div id="drop-area" class="drop-area">
           <p id="drop-text">Ziehe deine Datei hierher oder klicke, um sie auszuwählen</p>
-          <input type="file" name="datei" id="datei" required>
+          <input type="file" name="datei" id="datei" required style="display:none;">
         </div>
         
         <!-- Anzeige des Dateinamens -->
@@ -35,11 +35,12 @@
         </div>
         <button type="submit">Datei hochladen</button>
         
-        <!-- Loader-Indicator (Spinner) -->
+        <!-- Loader-Spinner (wird beim Upload eingeblendet) -->
         <div class="loader-container" style="display: none;">
           <div class="loader"></div>
-          <p>Lade Datei...</p>
         </div>
+        <!-- Fortschrittsanzeige -->
+        <progress id="upload-progress" value="0" max="100" style="width: 100%; display: none;"></progress>
       </form>
     </div>
 
@@ -48,45 +49,45 @@
       const fileInput = document.getElementById('datei');
       const fileInfo = document.getElementById('file-info');
       const dropText = document.getElementById('drop-text');
+      const form = document.getElementById('upload-form');
+      const progressBar = document.getElementById('upload-progress');
+      const loaderContainer = document.querySelector('.loader-container');
 
-      // Standardaktionen für Drag & Drop verhindern
-      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, preventDefaults, false);
+      // Bei Klick im Drop-Bereich den Dateiauswahldialog öffnen
+      dropArea.addEventListener('click', () => {
+        fileInput.click();
       });
-      function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
+
+      // Standardaktionen bei Drag & Drop unterbinden
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, e => {
+          e.preventDefault();
+          e.stopPropagation();
+        });
+      });
 
       // Hervorhebung beim Drag & Drop
       ['dragenter', 'dragover'].forEach(eventName => {
         dropArea.addEventListener(eventName, () => {
           dropArea.classList.add('highlight');
-        }, false);
+        });
       });
       ['dragleave', 'drop'].forEach(eventName => {
         dropArea.addEventListener(eventName, () => {
           dropArea.classList.remove('highlight');
-        }, false);
+        });
       });
 
-      // Beim Klick in den Bereich Dateiauswahl öffnen
-      dropArea.addEventListener('click', () => {
-        fileInput.click();
-      }, false);
-
-      // Dateien per Drag & Drop verarbeiten
-      dropArea.addEventListener('drop', handleDrop, false);
-      function handleDrop(e) {
-        const dt = e.dataTransfer;
-        const files = dt.files;
+      // Beim Drop den Dateinamen anzeigen
+      dropArea.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
         if (files.length > 0) {
           fileInput.files = files;
           displayFileName(files[0].name);
         }
-      }
+      });
 
-      // Bei Dateiauswahl per Klick
+      // Beim Auswählen einer Datei über den Dialog
       fileInput.addEventListener('change', function() {
         if (fileInput.files.length > 0) {
           displayFileName(fileInput.files[0].name);
@@ -99,10 +100,36 @@
         dropText.textContent = "Datei ausgewählt – klicke hier, um eine andere auszuwählen";
       }
 
-      // Loader-Indicator anzeigen, wenn Formular abgeschickt wird
-      const form = document.querySelector('form');
-      form.addEventListener('submit', function() {
-        document.querySelector('.loader-container').style.display = 'flex';
+      // Formular per AJAX absenden und Fortschritt anzeigen
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "{{ url_for('upload') }}");
+        xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+
+        xhr.upload.addEventListener("progress", (e) => {
+          if (e.lengthComputable) {
+            const percentComplete = (e.loaded / e.total) * 100;
+            progressBar.style.display = 'block';
+            progressBar.value = percentComplete;
+          }
+        });
+
+        xhr.onloadstart = function() {
+          loaderContainer.style.display = 'flex';
+        };
+
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            const response = JSON.parse(xhr.responseText);
+            window.location.href = response.redirect_url;
+          } else {
+            alert("Upload fehlgeschlagen!");
+          }
+        };
+
+        xhr.send(formData);
       });
     </script>
 </body>

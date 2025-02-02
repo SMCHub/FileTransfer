@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin-Panel</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <h1>Admin-Panel</h1>
+    {% if uploads %}
+    <table style="width:100%; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th style="border: 1px solid #ccc; padding: 8px;">Dateiname</th>
+          <th style="border: 1px solid #ccc; padding: 8px;">Original-Dateiname</th>
+          <th style="border: 1px solid #ccc; padding: 8px;">Upload-Zeit</th>
+          <th style="border: 1px solid #ccc; padding: 8px;">Ablauf-Zeit</th>
+          <th style="border: 1px solid #ccc; padding: 8px;">E-Mail</th>
+          <th style="border: 1px solid #ccc; padding: 8px;">Downloads</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for upload in uploads %}
+        <tr>
+          <td style="border: 1px solid #ccc; padding: 8px;">{{ upload.filename }}</td>
+          <td style="border: 1px solid #ccc; padding: 8px;">{{ upload.original_filename }}</td>
+          <td style="border: 1px solid #ccc; padding: 8px;">{{ upload.upload_time }}</td>
+          <td style="border: 1px solid #ccc; padding: 8px;">{{ upload.expiration_time }}</td>
+          <td style="border: 1px solid #ccc; padding: 8px;">{{ upload.email }}</td>
+          <td style="border: 1px solid #ccc; padding: 8px;">{{ upload.download_count }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <p>Keine Uploads vorhanden.</p>
+    {% endif %}
+  </div>
+</body>
+</html> 
