@@ -18,9 +18,13 @@
       <p>Lade deine Datei per Drag & Drop oder per Klick hoch.</p>
       <form action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data">
         <div id="drop-area" class="drop-area">
-          <p>Ziehe deine Datei hierher oder klicke, um sie auszuwählen</p>
+          <p id="drop-text">Ziehe deine Datei hierher oder klicke, um sie auszuwählen</p>
           <input type="file" name="datei" id="datei" required>
         </div>
+        
+        <!-- Hier wird der Dateiname angezeigt, wenn eine Datei ausgewählt wurde -->
+        <div id="file-info" class="file-info" style="margin-top: 0.5rem; font-style: italic; color: #555;"></div>
+        
         <div class="form-group">
           <label for="email">E-Mail (für den Download-Link)</label>
           <input type="email" name="email" id="email" placeholder="deine.email@example.com" required>
@@ -31,26 +35,26 @@
         </div>
         <button type="submit">Datei hochladen</button>
         <!-- Lade-Indikator (zunächst versteckt) -->
-        <div class="loading" style="display: none;">Bitte warten, Datei wird hochgeladen...</div>
+        <div class="loading" style="display: none; margin-top: 1rem;">Bitte warten, Datei wird hochgeladen...</div>
       </form>
     </div>
 
     <script>
-      // Drag & Drop Unterstützung
       const dropArea = document.getElementById('drop-area');
       const fileInput = document.getElementById('datei');
+      const fileInfo = document.getElementById('file-info');
+      const dropText = document.getElementById('drop-text');
 
-      // Standardaktionen verhindern
+      // Standardaktionen verhindern (Drag & Drop Verhalten)
       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropArea.addEventListener(eventName, preventDefaults, false);
       });
-
       function preventDefaults(e) {
         e.preventDefault();
         e.stopPropagation();
       }
 
-      // Hervorhebung bei Dragover
+      // Wenn die Maus über die Fläche fährt: optische Hervorhebung
       ['dragenter', 'dragover'].forEach(eventName => {
         dropArea.addEventListener(eventName, () => {
           dropArea.classList.add('highlight');
@@ -69,13 +73,26 @@
 
       // Dateien beim Drop verarbeiten
       dropArea.addEventListener('drop', handleDrop, false);
-
       function handleDrop(e) {
         const dt = e.dataTransfer;
         const files = dt.files;
         if (files.length > 0) {
           fileInput.files = files;
+          displayFileName(files[0].name);
         }
+      }
+
+      // Dateiauswahl per Klick - wenn eine Datei ausgewählt wurde, wird der Name angezeigt
+      fileInput.addEventListener('change', function() {
+        if (fileInput.files.length > 0) {
+          displayFileName(fileInput.files[0].name);
+        }
+      });
+
+      // Funktion zum Anzeigen des Dateinamens
+      function displayFileName(name) {
+        fileInfo.textContent = "Ausgewählte Datei: " + name;
+        dropText.textContent = "Datei ausgewählt – klicke hier, um eine andere auszuwählen";
       }
 
       // Lade-Indikator anzeigen, wenn das Formular abgesendet wird
