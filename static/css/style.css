@@ -5,83 +5,32 @@
   padding: 0;
 }
 
-/* Basis-Styles */
+/* Body-Styling: Zentrales, minimalistisch-schwarz-weiß Design */
 body {
   font-family: 'Inter', sans-serif;
-  color: #fff;
-  background: #000;
+  background-color: #fff;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
   margin: 0;
-  padding: 0;
-  overflow-x: hidden;
 }
 
-/* Fallback: Animierter kosmischer Gradient als Universum-Effekt */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  /* Standard: animierter dunkler Gradient */
-  background: radial-gradient(ellipse at center, rgba(30, 30, 30, 0.9) 0%, #000 70%);
-  animation: cosmicWaves 30s ease infinite;
-  z-index: -2;
-  filter: blur(2px);
-}
-
-/* Keyframes für einen sanften Welleneffekt */
-@keyframes cosmicWaves {
-  0% {
-    transform: scale(1) translate(0, 0);
-  }
-  50% {
-    transform: scale(1.05) translate(20px, -20px);
-  }
-  100% {
-    transform: scale(1) translate(0, 0);
-  }
-}
-
-/*
-  Falls Du ein Bild namens "universe.jpg" im Ordner static/images hast,
-  füge im HTML der <body>-Tag die Klasse "has-universe" hinzu.
-  Dann wird das Bild als Hintergrund verwendet.
-*/
-body.has-universe::before {
-  background: url("../images/universe.jpg") no-repeat center center fixed;
-  background-size: cover;
-  filter: blur(8px);
-  animation: none;
-  opacity: 0.8;
-}
-
-/* Container */
+/* Container: Zentriert und moderne Optik */
 .container {
-  background: rgba(0, 0, 0, 0.6);
+  background: #fff;
   padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-  color: #fff;
-  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   max-width: 480px;
+  width: 100%;
   text-align: center;
 }
 
-/* Title & Text */
-h1 {
-  font-size: 2rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
-
-p {
-  margin-bottom: 1.5rem;
-}
-
-/* Drop-Area für Drag & Drop */
+/* Drop-Area: Minimalistisch und modern */
 .drop-area {
-  border: 2px dashed #ccc;
+  border: 2px dashed #aaa;
   border-radius: 8px;
   padding: 1.5rem;
   transition: border-color 0.3s ease;
@@ -89,7 +38,7 @@ p {
   margin-bottom: 1.5rem;
 }
 .drop-area.highlight {
-  border-color: #4caf50;
+  border-color: #000;
 }
 
 /* Datei-Input (unsichtbar, da Drop-Area dient) */
@@ -113,21 +62,21 @@ p {
   width: 100%;
   padding: 0.75rem;
   font-size: 1rem;
-  border: 1px solid #ddd;
+  border: 1px solid #ccc;
   border-radius: 5px;
   transition: border-color 0.3s ease;
 }
 .form-group input[type="email"]:focus,
 .form-group input[type="text"]:focus {
-  border-color: #4caf50;
+  border-color: #000;
   outline: none;
 }
 
-/* Button */
+/* Button: Schwarzer Hintergrund mit weißem Text */
 button {
   width: 100%;
   padding: 0.75rem;
-  background-color: #4caf50;
+  background-color: #000;
   border: none;
   border-radius: 5px;
   color: #fff;
@@ -138,7 +87,7 @@ button {
   margin-top: 1rem;
 }
 button:hover {
-  background-color: #43a047;
+  background-color: #333;
 }
 
 /* Loader Spinner */
@@ -148,10 +97,9 @@ button:hover {
   align-items: center;
   margin-top: 1rem;
 }
-
 .loader {
-  border: 8px solid rgba(255, 255, 255, 0.2);
-  border-top: 8px solid #4caf50;
+  border: 8px solid rgba(0, 0, 0, 0.1);
+  border-top: 8px solid #000;
   border-radius: 50%;
   width: 60px;
   height: 60px;
@@ -164,15 +112,24 @@ button:hover {
   100% { transform: rotate(360deg); }
 }
 
+/* Anzeige des Dateinamens */
+.file-info {
+  margin-top: 0.5rem;
+  font-style: italic;
+  color: #666;
+}
+
 /* Links */
-.download-link, .back-link {
-  color: #4caf50;
+.download-link,
+.back-link {
+  color: #000;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.3s ease;
 }
-.download-link:hover, .back-link:hover {
-  color: #388e3c;
+.download-link:hover,
+.back-link:hover {
+  color: #333;
 }
 
 /* Responsives Design */
@@ -180,7 +137,6 @@ button:hover {
   .container {
     padding: 1.5rem;
   }
-  
   h1 {
     font-size: 1.75rem;
   }
