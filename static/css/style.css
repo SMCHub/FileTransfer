@@ -15,6 +15,7 @@ body {
   justify-content: center;
   min-height: 100vh;
   margin: 0;
+  padding: 0 1rem; /* Verhindert, dass an den Rändern nichts klebt */
 }
 
 /* Container: Zentriert und moderne Optik */
@@ -26,6 +27,13 @@ body {
   max-width: 480px;
   width: 100%;
   text-align: center;
+}
+
+/* Abstand zwischen Elementen in Containern */
+.container p {
+  margin-bottom: 1rem;
+  line-height: 1.5;
+  word-wrap: break-word;
 }
 
 /* Drop-Area: Minimalistisch und modern */
@@ -117,6 +125,7 @@ button:hover {
   margin-top: 0.5rem;
   font-style: italic;
   color: #666;
+  word-wrap: break-word;
 }
 
 /* Links */
@@ -130,6 +139,13 @@ button:hover {
 .download-link:hover,
 .back-link:hover {
   color: #333;
+}
+
+/* Allgemeine Absatz- und Textstile */
+p {
+  margin-bottom: 1rem;
+  line-height: 1.5;
+  word-wrap: break-word;
 }
 
 /* Responsives Design */
