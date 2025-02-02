@@ -1,46 +1,62 @@
-/* Allgemeine Einstellungen */
-* {
+/* Reset und Basis-Stile */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
-}
-body {
   margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
   font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: #f5f5f5;
+  color: #333;
+}
+
+/* Zentrierung der Container */
+body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  color: #333;
 }
+
+/* Container-Design */
 .container {
   background-color: #fff;
+  border-radius: 8px;
   padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   width: 90%;
   max-width: 400px;
   text-align: center;
 }
+
+/* Überschriften und Texte */
 h1 {
-  margin-top: 0;
-  margin-bottom: 0.5rem;
   font-size: 2rem;
+  margin-bottom: 0.5rem;
   font-weight: 600;
 }
+
 p {
   margin-bottom: 1.5rem;
   font-size: 1rem;
 }
+
+/* Formular-Gruppe */
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   text-align: left;
 }
+
 .form-group label {
   display: block;
-  margin-bottom: 0.25rem;
-  font-weight: 600;
+  margin-bottom: 0.5rem;
   font-size: 0.9rem;
+  font-weight: 600;
 }
+
 .form-group input[type="file"],
 .form-group input[type="email"],
 .form-group input[type="text"] {
@@ -50,6 +66,8 @@ p {
   border-radius: 5px;
   font-size: 0.9rem;
 }
+
+/* Button-Stile */
 button {
   width: 100%;
   padding: 0.75rem;
@@ -62,14 +80,18 @@ button {
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
+
 button:hover {
   background-color: #43a047;
 }
+
+/* Links */
 .download-link, .back-link {
   color: #4caf50;
   font-weight: 600;
   text-decoration: none;
 }
+
 .download-link:hover, .back-link:hover {
   text-decoration: underline;
 }

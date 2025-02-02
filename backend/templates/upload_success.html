@@ -16,10 +16,10 @@
         <p>Du kannst die Datei über folgenden Link herunterladen:</p>
         <p><a href="{{ download_link }}" class="download-link">{{ download_link }}</a></p>
         {% if email_sent %}
-        <p>Der Download-Link wurde zudem per E-Mail versendet.</p>
+        <p>Der Download-Link wurde per E-Mail an Dich gesendet.</p>
         {% endif %}
         {% if password %}
-        <p>Gewähltes Passwort: <strong>{{ password }}</strong></p>
+        <p>Dein gewähltes Passwort: <strong>{{ password }}</strong></p>
         {% endif %}
         <a href="{{ url_for('index') }}" class="back-link">Zurück zur Startseite</a>
     </div>
