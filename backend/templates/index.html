@@ -30,6 +30,8 @@
           <input type="text" name="password" id="password" placeholder="Optional">
         </div>
         <button type="submit">Datei hochladen</button>
+        <!-- Lade-Indikator (zunächst versteckt) -->
+        <div class="loading" style="display: none;">Bitte warten, Datei wird hochgeladen...</div>
       </form>
     </div>
 
@@ -60,6 +62,11 @@
         }, false);
       });
 
+      // Wenn man in den Bereich klickt, öffnet sich auch das Dateiauswahlfenster
+      dropArea.addEventListener('click', () => {
+        fileInput.click();
+      }, false);
+
       // Dateien beim Drop verarbeiten
       dropArea.addEventListener('drop', handleDrop, false);
 
@@ -70,6 +77,13 @@
           fileInput.files = files;
         }
       }
+
+      // Lade-Indikator anzeigen, wenn das Formular abgesendet wird
+      const form = document.querySelector('form');
+      form.addEventListener('submit', function() {
+        const loadingIndicator = document.querySelector('.loading');
+        loadingIndicator.style.display = 'block';
+      });
     </script>
 </body>
 </html>
