@@ -46,9 +46,13 @@ def save_metadata(metadata):
         json.dump(metadata, f, indent=4, default=str)
 
 def send_email(recipient, subject, message):
-    # Dummy-Funktion zum Versenden von E-Mails.
-    # In einer Produktionsumgebung sollte hier z. B. Flask-Mail integriert werden.
-    print(f"E-Mail gesendet an {recipient} mit Betreff '{subject}':\n{message}")
+    msg = Message(subject, recipients=[recipient])
+    msg.body = message
+    try:
+        mail.send(msg)
+        print("E-Mail erfolgreich gesendet an", recipient)
+    except Exception as e:
+        print("Fehler beim Senden der E-Mail:", e)
 
 # Startseite: Hier wird das Upload-Formular angezeigt
 @app.route('/')
@@ -91,6 +95,18 @@ def upload_file():
         'download_count': 0
     }
     save_metadata(metadata)
+
+    # Generiere den vollständigen Download-Link
+    download_link = url_for('download_file', filename=filename, _external=True)
+    
+    # Falls eine E-Mail angegeben wurde, sende den Download-Link per E-Mail
+    if email:
+        subject = "Dein FileTransfer Download-Link"
+        message = (
+            f"Hallo,\n\nDein Download-Link lautet: {download_link}\n\n"
+            "Bitte beachte, dass der Link in 7 Tagen abläuft.\n\nViele Grüße,\nDein FileTransfer Team"
+        )
+        send_email(email, subject, message)
 
     # Generiere Redirect-URL zur Upload-Erfolgsseite
     redirect_url = url_for('upload_success', filename=filename)
