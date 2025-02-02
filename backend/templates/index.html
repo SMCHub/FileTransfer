@@ -5,22 +5,20 @@
     <meta name="description" content="Sicherer und unkomplizierter Datei-Transfer in der Schweiz">
     <meta name="keywords" content="Datei-Upload, WeTransfer, Schweiz, sicherer Transfer">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Filetransfer – Sicher & Minimal</title>
+    <title>Filetransfer – Minimal & Sicher</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Google Fonts (Inter) laden -->
+    <!-- Google Fonts laden -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Canvas für den 3D-Hintergrund -->
-    <canvas id="bgCanvas"></canvas>
     <div class="container">
       <h1>Filetransfer</h1>
-      <p>Einfach, sicher und minimal. Übertrage große Dateien – schnell und intuitiv.</p>
+      <p>Lade deine Datei per Drag & Drop oder per Klick hoch.</p>
       <form action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data">
-        <div class="form-group">
-          <label for="datei">Datei auswählen</label>
+        <div id="drop-area" class="drop-area">
+          <p>Ziehe deine Datei hierher oder klicke, um sie auszuwählen</p>
           <input type="file" name="datei" id="datei" required>
         </div>
         <div class="form-group">
@@ -35,47 +33,43 @@
       </form>
     </div>
 
-    <!-- Einbinden von Three.js über ein CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- JavaScript für den 3D-Hintergrund -->
     <script>
-      // Erstelle eine einfache 3D-Szene mit einem rotierenden Würfel
-      const canvas = document.getElementById('bgCanvas');
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      // Drag & Drop Unterstützung
+      const dropArea = document.getElementById('drop-area');
+      const fileInput = document.getElementById('datei');
 
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000);
-      const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
-      renderer.setSize(canvas.width, canvas.height);
-
-      // Erstelle einen Würfel (Box)
-      const geometry = new THREE.BoxGeometry();
-      // Wir nutzen hier eine Drahtmodell-Darstellung für einen coolen 3D-Effekt
-      const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
-      const cube = new THREE.Mesh(geometry, material);
-      scene.add(cube);
-
-      // Positioniere die Kamera
-      camera.position.z = 5;
-
-      // Animationsfunktion: der Würfel rotiert kontinuierlich
-      function animate() {
-          requestAnimationFrame(animate);
-          cube.rotation.x += 0.01;
-          cube.rotation.y += 0.01;
-          renderer.render(scene, camera);
-      }
-      animate();
-
-      // Passe den Canvas an, wenn die Fenstergröße sich ändert
-      window.addEventListener('resize', () => {
-          canvas.width = window.innerWidth;
-          canvas.height = window.innerHeight;
-          renderer.setSize(window.innerWidth, window.innerHeight);
-          camera.aspect = window.innerWidth / window.innerHeight;
-          camera.updateProjectionMatrix();
+      // Standardaktionen verhindern
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
       });
+
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      // Hervorhebung bei Dragover
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => {
+          dropArea.classList.add('highlight');
+        }, false);
+      });
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => {
+          dropArea.classList.remove('highlight');
+        }, false);
+      });
+
+      // Dateien beim Drop verarbeiten
+      dropArea.addEventListener('drop', handleDrop, false);
+
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length > 0) {
+          fileInput.files = files;
+        }
+      }
     </script>
 </body>
 </html>
