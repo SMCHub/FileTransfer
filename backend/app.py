@@ -3,6 +3,7 @@ import os
 import uuid
 from flask_mail import Mail, Message  # Für den Email-Versand
 from werkzeug.utils import secure_filename
+import json
 
 app = Flask(__name__, static_folder='../static', static_url_path='/static')
 app.secret_key = 'dein_geheimer_schluessel'  # Ändere diesen Schlüssel in etwas Einzigartiges!
@@ -26,8 +27,22 @@ if not os.path.exists(UPLOAD_FOLDER):
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # Maximale Dateigröße: 100 MB
 
-# Globales Wörterbuch, um Informationen zu gespeicherten Dateien zu speichern
-uploads_info = {}
+# Funktionen für persistente Speicherung der Metadaten in metadata.json
+def load_metadata():
+    metadata_file = os.path.join(app.config['UPLOAD_FOLDER'], 'metadata.json')
+    if os.path.exists(metadata_file):
+        with open(metadata_file, 'r') as f:
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                return {}
+    else:
+        return {}
+
+def save_metadata(metadata):
+    metadata_file = os.path.join(app.config['UPLOAD_FOLDER'], 'metadata.json')
+    with open(metadata_file, 'w') as f:
+        json.dump(metadata, f)
 
 # Startseite: Hier wird das Upload-Formular angezeigt
 @app.route('/')
@@ -55,11 +70,13 @@ def upload_file():
     email = request.form.get('email')
     password = request.form.get('password')  # kann leer sein
 
-    # Speichern der Datei-Informationen im Wörterbuch
-    uploads_info[filename] = {
+    # Lade bestehende Metadaten, update diese mit den neuen Informationen und speichere sie
+    metadata = load_metadata()
+    metadata[filename] = {
         'password': password,
         'original_filename': file.filename
     }
+    save_metadata(metadata)
 
     # Weiterverarbeitung (Zum Beispiel Download-Link generieren)
     download_link = url_for('download_file', filename=filename, _external=True)
@@ -80,8 +97,9 @@ def upload_file():
 # Route zum Herunterladen der Datei
 @app.route('/download/<filename>', methods=['GET', 'POST'])
 def download_file(filename):
-    # Informationen zur Datei abfragen
-    info = uploads_info.get(filename)
+    # Lade die Metadaten aus der JSON-Datei
+    metadata = load_metadata()
+    info = metadata.get(filename)
     if not info:
         return "Datei nicht gefunden!", 404
 
